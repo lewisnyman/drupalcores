@@ -33,8 +33,8 @@ gulp.task('drupalcore', function () {
 
 // Build contributors page
 gulp.task('contributors', function () {
-  return gulp.src('')
-    .pipe(shell(['./cores.rb > ../../dist/index.html'], { 'cwd': './app/bin'}));
+  // return gulp.src('')
+  //   .pipe(shell(['./cores.rb > ../../dist/index.html'], { 'cwd': './app/bin'}));
 });
 
 // Build companies page
