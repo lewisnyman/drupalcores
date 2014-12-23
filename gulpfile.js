@@ -1,12 +1,18 @@
+/*jshint strict:false */
 var gulp = require('gulp');
 var usemin = require('gulp-usemin');
-var concat = require('gulp-concat');
 var minifycss = require('gulp-minify-css');
 var uglify = require('gulp-uglify');
 var imagemin = require('gulp-imagemin');
-var sourcemaps = require('gulp-sourcemaps');
 var del = require('del');
 var sass = require('gulp-sass');
+var bower = require('gulp-bower');
+var runSequence = require('run-sequence');
+var shell = require('gulp-shell');
+var minifyHTML = require('gulp-minify-html');
+var uncss = require('gulp-uncss');
+var jshint = require('gulp-jshint');
+var stylish = require('jshint-stylish');
 
 var paths = {
   scripts: 'app/js/**/*.js',
@@ -14,13 +20,57 @@ var paths = {
   scss: 'app/scss/**/*.scss'
 };
 
-gulp.task('clean', function(cb) {
-  del(['dist/images', 'dist/js', 'dist/css'], cb);
+// Run bower install
+gulp.task('bower', function() {
+  return bower();
 });
 
+gulp.task('lint', function() {
+  return gulp.src([paths.scripts, 'gulpfile.js'])
+    .pipe(jshint())
+    .pipe(jshint.reporter(stylish));
+});
+
+// Clone or update drupalcore repo
+gulp.task('drupalcore', function () {
+  return gulp.src('')
+    .pipe(shell(['git clone --branch 8.0.x http://git.drupal.org/project/drupal.git ./app/drupalcore'],{ 'ignoreErrors': true}))
+    .pipe(shell(['git pull'],{ 'ignoreErrors': true, 'cwd': './app/drupalcore'}));
+});
+
+// Build contributors page
+gulp.task('buildcontributors', function () {
+  return gulp.src('')
+    .pipe(shell(['./cores.rb > ../../dist/index.html'], { 'cwd': './app/bin'}));
+});
+
+// Build companies page
+gulp.task('buildcompanies', function () {
+  return gulp.src('')
+    .pipe(shell(['./companies.rb > ../../dist/companies.html'], { 'cwd': './app/bin'}));
+});
+
+// Build companies page
+gulp.task('companyinfo', function () {
+  return gulp.src('')
+    .pipe(shell(['./companies.rb --update-all'], { 'cwd': './app/bin'}));
+});
+
+// Build json data
+gulp.task('buildjson', function () {
+  return gulp.src('')
+    .pipe(shell(['./json.rb > ../../dist/data.json'], { 'cwd': './app/bin'}));
+});
+
+// Clean all assets
+gulp.task('clean', function(cb) {
+  return del(['dist/images', 'dist/js', 'dist/css'], cb);
+});
+
+// Copy all javascripts
 gulp.task('javascripts', ['clean'], function() {
   return gulp.src(paths.scripts)
-  .pipe(gulp.dest('dist/js'));
+    .pipe(gulp.dest('dist/js'));
 });
 
 // Copy all static images
@@ -33,18 +83,54 @@ gulp.task('images', ['clean'], function() {
 
 // Compile Sass
 gulp.task('sass',  ['clean'], function () {
-    gulp.src(paths.scss)
-        .pipe(sass())
-        .pipe(gulp.dest('dist/css'));
+  return gulp.src(paths.scss)
+    .pipe(sass())
+    .pipe(gulp.dest('dist/css'));
 });
 
+// Parse the html for groups of assets and compress
 gulp.task('usemin', function () {
   return gulp.src('./dist/*.html')
-      .pipe(usemin({
-        js: [uglify()],
-        css: [minifycss({keepBreaks:true})]
-      }))
-      .pipe(gulp.dest('dist/'));
+    .pipe(usemin({
+      js: [uglify()],
+      css: [minifycss({keepBreaks:true})]
+    }))
+    .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('default', ['javascripts', 'images', 'sass']);
+
+// UNCSS
+gulp.task('uncss', function() {
+  return gulp.src('./css/style.css')
+    .pipe(uncss({
+      html: ['./dist/*.html']
+    }))
+    .pipe(gulp.dest('./css'));
+});
+
+// Minify HTML
+gulp.task('minifyhtml', function() {
+  var opts = {comments:true,spare:true};
+
+  gulp.src('./dist/*.html')
+    .pipe(minifyHTML(opts))
+    .pipe(gulp.dest('./dist/'));
+});
+
+// The whole shebang
+gulp.task('default', function(callback) {
+  runSequence(['clean', 'bower', 'drupalcore'],
+              ['buildcontributors', 'buildcompanies', 'json', 'javascripts', 'images', 'sass'],
+              'usemin',
+              'minifyhtml',
+              callback);
+});
+
+// Run contributors only, because companies can take ages the first time
+gulp.task('contributors', function(callback) {
+  runSequence(['clean', 'bower', 'drupalcore'],
+              ['buildcontributors', 'buildjson', 'javascripts', 'images', 'sass'],
+              'usemin',
+              'minifyhtml',
+              callback);
+});
