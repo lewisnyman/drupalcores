@@ -338,3 +338,18 @@ img.toggle {
 .employees {
   width: 100%;
 }
+
+.animal-count {
+  font-size: 50px;
+  font-weight: bolder;
+  @media (min-width: 500px) {
+    float: left;
+    width: 50%;
+  }
+}
+.animal-count__container {
+  overflow: hidden;
+}
+.animal-count__value {
+  color: #007edf;
+}

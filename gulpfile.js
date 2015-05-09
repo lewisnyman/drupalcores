@@ -48,6 +48,12 @@ gulp.task('buildcontributors', ['buildjson'], function () {
     .pipe(shell(['./cores.rb > ../../dist/index.html'], { 'cwd': './app/bin'}));
 });
 
+// Build kittens vs llamas page
+gulp.task('buildkittensvsllamas', function () {
+  return gulp.src('')
+    .pipe(shell(['./kittens-vs-llamas.rb > ../../dist/kittens-vs-llamas.html'], { 'cwd': './app/bin'}));
+});
+
 // Build companies page
 gulp.task('buildcompanies', ['buildjson'], function () {
   return gulp.src('')

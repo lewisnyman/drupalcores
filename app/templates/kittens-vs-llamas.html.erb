@@ -1,0 +1,17 @@
+<%= header %>
+  <div class="main-content-wrap outer">
+    <section class="main-content inner">
+      <ul>
+        <li><a href="index.html">List Contributors</a></li>
+        <li><a href="companies.html">List Companies</a></li>
+      </ul>
+
+      <p class="updated">Last updated <span class="timeago" title="<%= time.iso8601(10) %>"><%= time %></span></p>
+
+    <div class="animal-count__container">
+      <div class="animal-count"><span class="animal-count__label">Kittens:</span> <span class="animal-count__value"><%= kittencount %></span></div>
+      <div class="animal-count"><span class="animal-count__label">Llamas:</span> <span class="animal-count__value"><%= llamacount %></span></div>
+    </div>
+    </section>
+  </div>
+<%= footer %>
